@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +14,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import org.jibble.simpleftp.SimpleFTP;
+
+import java.io.File;
 
 public class SignUp extends AppCompatActivity {
 
@@ -128,7 +134,9 @@ public class SignUp extends AppCompatActivity {
                     myAlert.myDialog("ยังไม่ได้เลือกรูป", "โปรดเลือกรูปด้วย คะ");
                 } else {
 
-
+                    //EveryThing OK
+                    uploadImageToServer();
+                    uploadTextToMySQL();
 
                 }
 
@@ -136,6 +144,55 @@ public class SignUp extends AppCompatActivity {
         });
 
     }   // buttonController
+
+    private void uploadTextToMySQL() {
+
+        try {
+
+            nameImageString = "http://swiftcodingthai.com/19feb/image_master" + pathImageString.substring(pathImageString.lastIndexOf("/"));
+
+            AddNewUser addNewUser = new AddNewUser(SignUp.this,
+                    nameString, userString, passString, nameImageString);
+            addNewUser.execute();
+
+            if (Boolean.parseBoolean(addNewUser.get())) {
+                finish();
+            } else {
+                Toast.makeText(SignUp.this, "Upload Error ", Toast.LENGTH_SHORT).show();
+            }
+
+
+        } catch (Exception e) {
+            Log.d("19febV1", "e upload Text ==> " + e.toString());
+        }
+
+    }   // upload
+
+    private void uploadImageToServer() {
+
+        try {
+
+            //Change Policy
+            StrictMode.ThreadPolicy threadPolicy = new StrictMode.ThreadPolicy
+                    .Builder()
+                    .permitAll()
+                    .build();
+            StrictMode.setThreadPolicy(threadPolicy);
+
+            SimpleFTP simpleFTP = new SimpleFTP();
+            simpleFTP.connect("ftp.swiftcodingthai.com", 21,
+                    "19feb@swiftcodingthai.com", "Abc12345");
+            simpleFTP.bin();
+            simpleFTP.cwd("image_master");
+            simpleFTP.stor(new File(pathImageString));
+            simpleFTP.disconnect();
+
+
+        } catch (Exception e) {
+            Log.d("19febV1", "e upload ==> " + e.toString());
+        }
+
+    }   // upload
 
     private void bindWidget() {
 
